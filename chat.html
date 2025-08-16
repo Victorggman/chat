@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Universal Chat</title>
+  <style>
+    body { font-family: Arial; text-align: center; margin-top: 50px; }
+    #chat { border: 1px solid #ccc; padding: 10px; height: 300px; width: 50%; margin: auto; overflow-y: scroll; }
+    #messageInput { width: 70%; padding: 5px; }
+    #sendBtn { padding: 5px 10px; }
+  </style>
+</head>
+<body>
+  <h1>Universal Chat</h1>
+
+  <div>
+    <input type="text" id="username" placeholder="Enter a username">
+  </div>
+
+  <div id="chatDiv">
+    <div id="chat"></div>
+    <input type="text" id="messageInput" placeholder="Type a message">
+    <button id="sendBtn" onclick="sendMessage()">Send</button>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT.firebaseio.com",
+      projectId: "YOUR_PROJECT",
+      storageBucket: "YOUR_PROJECT.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function sendMessage() {
+      const msg = document.getElementById('messageInput').value;
+      const username = document.getElementById('username').value || 'Anonymous';
+      if (!msg) return;
+
+      db.ref('messages').push({
+        text: msg,
+        username: username,
+        timestamp: Date.now()
+      });
+      document.getElementById('messageInput').value = '';
+    }
+
+    function loadMessages() {
+      db.ref('messages').orderByChild('timestamp').on('child_added', snap => {
+        const msg = snap.val();
+        const chatDiv = document.getElementById('chat');
+        chatDiv.innerHTML += `<p><strong>${msg.username}:</strong> ${msg.text}</p>`;
+        chatDiv.scrollTop = chatDiv.scrollHeight;
+      });
+    }
+
+    loadMessages();
+  </script>
+</body>
+</html>
